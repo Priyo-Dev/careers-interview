@@ -66,7 +66,69 @@ No authentication is required in this MVP. Sessions are tracked via a `session_i
 
 ---
 
-## Get Question Audio
+## Create Session (with provided questions)
+
+- **Method**: `POST`
+- **Path**: `/api/session/with-questions`
+- **Description**: Creates a new interview session using questions provided by the client. The backend stores the questions and returns the same response shape as `/api/session`.
+
+### Request Body
+
+```json
+{
+  "role_description": "Senior frontend engineer specializing in React",
+  "num_questions": 3,
+  "questions": [
+    "Tell me about a challenging frontend performance problem you solved.",
+    "How do you structure large React applications?",
+    "How do you approach accessibility in React?"
+  ]
+}
+```
+
+#### Fields
+
+- **role_description** `string` (required): Free-text description of the role. Stored with the session.
+- **num_questions** `number` (required): Number of questions provided. Must match the length of `questions`.
+- **questions** `string[]` (required): The exact questions you want to ask, in order.
+
+### Response: 200 OK
+
+```json
+{
+  "session_id": "e0de5c0e-2e5f-4e5c-9e9c-4bcb6c991234",
+  "num_questions": 3,
+  "questions": [
+    "Tell me about a challenging frontend performance problem you solved.",
+    "How do you structure large React applications?",
+    "How do you approach accessibility in React?"
+  ]
+}
+```
+
+#### Fields
+
+- **session_id** `string`: Unique identifier for this in-memory session. Required for subsequent calls.
+- **num_questions** `number`: Echo of the provided `num_questions`.
+- **questions** `string[]`: Echo of the provided `questions` array.
+
+### Error Responses
+
+- **400 Bad Request**
+
+  ```json
+  { "detail": "role_description is required" }
+  ```
+
+- **400 Bad Request**
+
+  ```json
+  { "detail": "num_questions must match length of questions array" }
+  ```
+
+---
+
+## Get Question Audio (TTS)
 
 - **Method**: `GET`
 - **Path**: `/api/session/{session_id}/question/{index}/audio`
@@ -202,7 +264,7 @@ Form fields:
 
 ---
 
-## Transcribe Audio
+## Transcribe Audio (STT)
 
 - **Method**: `POST`
 - **Path**: `/api/transcribe`

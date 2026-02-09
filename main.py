@@ -31,6 +31,12 @@ class SessionCreate(BaseModel):
     role_description: str
 
 
+class SessionCreateWithQuestions(BaseModel):
+    role_description: str
+    num_questions: int
+    questions: list[str]
+
+
 @app.post("/api/session")
 async def create_session(body: SessionCreate):
     """Create a session: generate questions from role, return session_id and num_questions."""
@@ -44,6 +50,33 @@ async def create_session(body: SessionCreate):
     session_id = str(uuid.uuid4())
     sessions[session_id] = {"role": role_description.strip(), "questions": questions}
     return {"session_id": session_id, "num_questions": len(questions), "questions": questions}
+
+
+@app.post("/api/session/with-questions")
+async def create_session_with_questions(body: SessionCreateWithQuestions):
+    """
+    Create a session using questions provided by the client.
+
+    The client sends the number of questions and the questions array;
+    the backend stores them and returns the same response shape as /api/session.
+    """
+    role_description = (body.role_description or "").strip()
+    if not role_description:
+        raise HTTPException(status_code=400, detail="role_description is required")
+
+    if body.num_questions != len(body.questions):
+        raise HTTPException(
+            status_code=400,
+            detail="num_questions must match length of questions array",
+        )
+
+    session_id = str(uuid.uuid4())
+    sessions[session_id] = {"role": role_description, "questions": body.questions}
+    return {
+        "session_id": session_id,
+        "num_questions": body.num_questions,
+        "questions": body.questions,
+    }
 
 
 @app.get("/api/session/{session_id}/question/{index}/audio")
